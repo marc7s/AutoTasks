@@ -3,6 +3,7 @@ This tool allows you to perform automated actions on SQL Server databases, such 
 
 This tool is created for SQL Express instances of SQL Server databases, other solutions have not been tested. See the project [Leaderboard](https://github.com/marc7s/Leaderboard) for an example that utilises this tool.
 
+```bash
 .
 ├── Setup/
 │   ├── 1_CreateStructure.sql      # Creates the tables etc of the database
@@ -15,6 +16,7 @@ This tool is created for SQL Express instances of SQL Server databases, other so
 │   └── [...]                      # Scripts that load initialisation data into tables. These can be defaults, translation tables, countries etc.
 └── PostScripts/
     └── [...]                      # Any additional scripts that need to be executed once everything else is set up
+```
 
 **The *Setup* folder is mandatory, the rest do not need to exist if they are not needed. File names marked with [brackets] are optional.**
 The scripts are executed according to the above folder order. However, there is an option in the config to swap the order of functions and procedures, if functions are dependent on procedures instead, using the flag `ProceduresBeforeFunctions`. Within each folder, the scripts are executed in alphabetical order, thereby following the number prefix order.

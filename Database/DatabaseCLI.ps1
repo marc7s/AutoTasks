@@ -12,6 +12,7 @@
 # An enum for all the actions that can be performed on the database
 enum DatabaseAction
 {
+    TryConnecting
     DeployAll
     DeployProceduresAndFunctions
     ClearAllTables
@@ -49,15 +50,17 @@ function ParseConfig()
         {
             $db = [Database]::new(
                 $env.ServerName,
+                $env.Login,
+                (ConvertTo-SecureString $env.Password -AsPlainText -Force),
                 $env.DatabaseName,
                 $project.ProjectRootPath,
                 $env.EnvironmentName,
                 ($null -ne $project.ProceduresBeforeFunctions) ? $project.ProceduresBeforeFunctions : $false,
-                $env.DatabaseLogin,
-                $env.DatabaseUser,
-                ($null -ne $env.DatabasePassword) ? (ConvertTo-SecureString $env.DatabasePassword -AsPlainText -Force) : $null
+                $env.CreateDatabaseLogin,
+                ($null -ne $env.CreateDatabaseLoginPassword) ? (ConvertTo-SecureString $env.CreateDatabaseLoginPassword -AsPlainText -Force) : $null,
+                $env.CreateDatabaseUserName
             );
-            
+
             # Add the database object as a property to the environment object
             $env | Add-Member NoteProperty -Name Database -Value $db;
         }
@@ -175,6 +178,11 @@ function RunAction()
     {
         switch($databaseAction)
         {
+            ([DatabaseAction]::TryConnecting) {
+                TryConnectingToDatabase `
+                    -database $database;
+            }
+
             ([DatabaseAction]::DeployAll) {
                 Deploy `
                     -database $database;
@@ -468,6 +476,15 @@ function RunOrderedScripts([Database] $database, [string] $relativeFolderPath, [
         PrintError "Required scripts folder does not exist: $($folderPath)";
         Exit;
     }
+}
+
+# Tests the connection to the database
+function TryConnectingToDatabase([Database] $database)
+{
+    $null = $database.TestConnection();
+    
+    # If the TestConnection method did not throw an error, the connection was successful
+    $null = Write-Host "Successfully connected to $($database.ServerName)!";
 }
 
 # Clears all tables in the database, and reseeds the identities

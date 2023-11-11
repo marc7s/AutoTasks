@@ -27,31 +27,39 @@
                             "type": "string"
                         },
                         "ServerName": {
-                            "description": "The server name for this environment",
+                            "description": "The server name for this environment. Can be something like `localhost\\SQLEXPRESS` or an IP with port like `192.168.1.1,1433`",
                             "type": "string"
                         },
                         "DatabaseName": {
                             "description": "The database name for this environment",
                             "type": "string"
                         },
-                        "DatabaseLogin": {
-                            "description": "The database login for this environment",
+                        "Login": {
+                            "description": "The SQL Server Authentication login for this environment, used for connecting to the database",
                             "type": "string"
                         },
-                        "DatabaseUser": {
-                            "description": "The database user for the login of this environment",
+                        "Password": {
+                            "description": "The SQL Server Authentication password for this environment, used for connecting to the database",
                             "type": "string"
                         },
-                        "DatabasePassword": {
-                            "description": "The database password for the user of this environment",
+                        "CreateDatabaseLogin": {
+                            "description": "An optional database login to create for this environment",
+                            "type": "string"
+                        },
+                        "CreateDatabaseLoginPassword": {
+                            "description": "An optional password to create for the new login of this environment",
+                            "type": "string"
+                        },
+                        "CreateDatabaseUserName": {
+                            "description": "An optional database user to create for the login of this environment",
                             "type": "string"
                         }
                     },
-                    "required": ["EnvironmentName", "ServerName", "DatabaseName"],
+                    "required": ["EnvironmentName", "ServerName", "DatabaseName", "Login", "Password"],
                     "dependentRequired": {
-                        "DatabaseLogin": ["DatabaseUser", "DatabasePassword"],
-                        "DatabaseUser": ["DatabaseLogin", "DatabasePassword"],
-                        "DatabasePassword": ["DatabaseLogin", "DatabaseUser"]
+                        "CreateDatabaseLogin": ["CreateDatabaseUserName", "CreateDatabaseLoginPassword"],
+                        "CreateDatabaseLoginPassword": ["CreateDatabaseLogin", "CreateDatabaseUserName"],
+                        "CreateDatabaseUserName": ["CreateDatabaseLogin", "CreateDatabaseLoginPassword"]
                     }
                 }
             }

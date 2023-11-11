@@ -11,10 +11,13 @@ class Database
     [boolean] $ProceduresBeforeFunctions
 
     [string] $Login
-    [string] $User
     [SecureString] $Password
+
+    [string] $CreateLogin
+    [string] $CreateUserName
+    [SecureString] $CreateLoginPassword
     
-    Database([string] $serverName, [string] $databaseName, [string] $databaseScriptsRoot, [string] $environment, [boolean] $proceduresBeforeFunctions, [string] $login = $null, [string] $user = $null, [SecureString] $password = $null)
+    Database([string] $serverName, [string] $login, [SecureString] $password, [string] $databaseName, [string] $databaseScriptsRoot, [string] $environment, [boolean] $proceduresBeforeFunctions, [string] $createLogin = $null, [SecureString] $createLoginPassword = $null, [string] $createUserName = $null)
     {
         $this.ServerName = $serverName;
         $this.DatabaseName = $databaseName;
@@ -23,8 +26,11 @@ class Database
         $this.ProceduresBeforeFunctions = $proceduresBeforeFunctions;
 
         $this.Login = $login;
-        $this.User = $user;
         $this.Password = $password;
+
+        $this.CreateLogin = $createLogin;
+        $this.CreateLoginPassword = $createLoginPassword;
+        $this.CreateUserName = $createUserName;
 
         ValidatePath `
             -path $this.ScriptsRoot `
@@ -113,22 +119,22 @@ class Database
     # Sets up the database login and user and grants them the necessary permissions, if logins and users are provided
     [void] SetupDatabaseUser()
     {
-        if($null -eq $this.Login)
+        if($null -eq $this.CreateLogin)
         {
             return;
         }
         
-        $query = "IF NOT EXISTS(SELECT principal_id FROM sys.server_principals WHERE name = '$($this.Login)')
+        $query = "IF NOT EXISTS(SELECT principal_id FROM sys.server_principals WHERE name = '$($this.CreateLogin)')
         BEGIN
-            CREATE LOGIN $($this.Login) WITH PASSWORD = '$(ConvertFrom-SecureString $this.Password -AsPlainText)';
+            CREATE LOGIN $($this.CreateLogin) WITH PASSWORD = '$(ConvertFrom-SecureString $this.CreateLoginPassword -AsPlainText)';
         END
         
-        IF NOT EXISTS(SELECT principal_id FROM sys.database_principals WHERE name = '$($this.User)')
+        IF NOT EXISTS(SELECT principal_id FROM sys.database_principals WHERE name = '$($this.CreateUserName)')
         BEGIN
-            CREATE USER $($this.User) FOR LOGIN $($this.Login);
+            CREATE USER $($this.CreateUserName) FOR LOGIN $($this.CreateLogin);
         END
         
-        GRANT CONNECT, SELECT, EXEC TO $($this.User);
+        GRANT CONNECT, SELECT, EXEC TO $($this.CreateUserName);
         GO";
 
         ExecuteDatabaseQuery `
@@ -168,6 +174,8 @@ function ExecuteDatabaseQuery
 
     $params = @{
         ServerInstance = $Database.ServerName;
+        Username = $Database.Login;
+        Password = $(ConvertFrom-SecureString $Database.Password -AsPlainText);
         ErrorAction = "Stop";
         ConnectionTimeout = 10;
     }
