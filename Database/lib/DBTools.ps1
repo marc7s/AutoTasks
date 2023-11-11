@@ -129,6 +129,8 @@ class Database
             CREATE LOGIN $($this.CreateLogin) WITH PASSWORD = '$(ConvertFrom-SecureString $this.CreateLoginPassword -AsPlainText)';
         END
         
+        USE $($this.DatabaseName);
+
         IF NOT EXISTS(SELECT principal_id FROM sys.database_principals WHERE name = '$($this.CreateUserName)')
         BEGIN
             CREATE USER $($this.CreateUserName) FOR LOGIN $($this.CreateLogin);
