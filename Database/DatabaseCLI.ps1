@@ -92,7 +92,7 @@ function GetPrompt([string[]] $options, [string] $title, [boolean] $optionsInclu
 # Prompts the user to pick between a list of options, and returns the selected option
 function GetResponse([string[]] $optionNames, $options, [string] $title, [switch] $optionNamesIncludeIndex)
 {
-    Clear-Host;
+    $null = Clear-Host;
     $index = GetInput (GetPrompt -options $optionNames -title $title -optionsIncludeIndex $optionNamesIncludeIndex);
     
     return $options[$index - 1];
