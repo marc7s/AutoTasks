@@ -150,7 +150,7 @@ function CommandLineInterface()
         };
     }
 
-    RunAction @params;
+    $null = RunAction @params;
 }
 
 function RunAction()

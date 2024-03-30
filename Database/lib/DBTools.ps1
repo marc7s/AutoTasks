@@ -188,10 +188,13 @@ function ExecuteDatabaseQuery
         $params["Database"] = $Database.DatabaseName;
     }
 
+    $errMsgQuery = "UNDEFINED";
+
     # If the query to run is a string, use that, otherwise use the file path to the script
     if($Query)
     {
         $params["Query"] = $Query;
+        $errMsgQuery = $Query;
     }
     else
     {
@@ -208,6 +211,7 @@ function ExecuteDatabaseQuery
             -exit;
         
         $params["InputFile"] = $scriptPath;
+        $errMsgQuery = $RelativeSQLFilePath;
     }
     
     try
@@ -216,7 +220,7 @@ function ExecuteDatabaseQuery
     }
     catch
     {
-        $errorMessage = if($OverrideErrorMessage) { $OverrideErrorMessage } else { "\nFailed to execute query \n\n$($query)\n\n on $($this.ServerName).$($this.DatabaseName):" };
+        $errorMessage = if($OverrideErrorMessage) { $OverrideErrorMessage } else { "\nFailed to execute: \n\n$($errMsgQuery)\n\non $($this.ServerName).$($this.DatabaseName):" };
         Print $errorMessage;
         PrintError $_.Exception;
         
