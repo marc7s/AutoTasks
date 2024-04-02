@@ -8,6 +8,7 @@ class Database
     [string] $DatabaseName
     [string] $ScriptsRoot
     [string] $Environment
+    [boolean] $LoadTestData
     [boolean] $ProceduresBeforeFunctions
 
     [string] $Login
@@ -17,12 +18,13 @@ class Database
     [string] $CreateUserName
     [SecureString] $CreateLoginPassword
     
-    Database([string] $serverName, [string] $login, [SecureString] $password, [string] $databaseName, [string] $databaseScriptsRoot, [string] $environment, [boolean] $proceduresBeforeFunctions, [string] $createLogin = $null, [SecureString] $createLoginPassword = $null, [string] $createUserName = $null)
+    Database([string] $serverName, [string] $login, [SecureString] $password, [string] $databaseName, [string] $databaseScriptsRoot, [string] $environment, [boolean] $loadTestData, [boolean] $proceduresBeforeFunctions, [string] $createLogin = $null, [SecureString] $createLoginPassword = $null, [string] $createUserName = $null)
     {
         $this.ServerName = $serverName;
         $this.DatabaseName = $databaseName;
         $this.ScriptsRoot = (Resolve-Path $databaseScriptsRoot).Path;
         $this.Environment = $environment;
+        $this.LoadTestData = $loadTestData;
         $this.ProceduresBeforeFunctions = $proceduresBeforeFunctions;
 
         $this.Login = $login;

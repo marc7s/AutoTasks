@@ -2,6 +2,7 @@
     "title": "DatabaseConfig",
     "description": "A configuration file for databases used in projects",
     "type": "array",
+    "minItems": 1,
     "items": {
         "type": "object",
         "properties": {
@@ -19,12 +20,17 @@
             },
             "Environments": {
                 "type": "array",
+                "minItems": 1,
                 "items": {
                     "type": "object",
                     "properties": {
                         "EnvironmentName": {
                             "description": "The name of this environment",
                             "type": "string"
+                        },
+                        "LoadTestData": {
+                            "description": "If this environment should load the test data",
+                            "type": "boolean"
                         },
                         "ServerName": {
                             "description": "The server name for this environment. Can be something like `localhost\\SQLEXPRESS` or an IP with port like `192.168.1.1,1433`",
@@ -55,7 +61,7 @@
                             "type": "string"
                         }
                     },
-                    "required": ["EnvironmentName", "ServerName", "DatabaseName", "Login", "Password"],
+                    "required": ["EnvironmentName", "LoadTestData", "ServerName", "DatabaseName", "Login", "Password"],
                     "dependentRequired": {
                         "CreateDatabaseLogin": ["CreateDatabaseUserName", "CreateDatabaseLoginPassword"],
                         "CreateDatabaseLoginPassword": ["CreateDatabaseLogin", "CreateDatabaseUserName"],

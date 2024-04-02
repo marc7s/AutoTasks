@@ -6,6 +6,7 @@
     FUNCTIONS = "Functions"
     PROCEDURES = "Procedures"
     LOAD = "Load"
+    TEST = "Test"
     POSTSCRIPTS = "PostScripts"
 }
 
@@ -17,6 +18,7 @@ enum DatabaseAction
     DeployProceduresAndFunctions
     ClearAllTables
     ClearAllTablesAndReLoadData
+    ClearAllTablesAndReLoadTest
 }
 
 # An enum for all the actions that can be performed on the structure
@@ -55,6 +57,7 @@ function ParseConfig()
                 $env.DatabaseName,
                 $project.ProjectRootPath,
                 $env.EnvironmentName,
+                $env.LoadTestData,
                 ($null -ne $project.ProceduresBeforeFunctions) ? $project.ProceduresBeforeFunctions : $false,
                 $env.CreateDatabaseLogin,
                 ($null -ne $env.CreateDatabaseLoginPassword) ? (ConvertTo-SecureString $env.CreateDatabaseLoginPassword -AsPlainText -Force) : $null,
@@ -204,6 +207,12 @@ function RunAction()
             ([DatabaseAction]::ClearAllTablesAndReLoadData) {
                 ClearAndReloadTables `
                     -database $database;
+            }
+
+            ([DatabaseAction]::ClearAllTablesAndReLoadTest) {
+                ClearAndReloadTables `
+                    -database $database `
+                    -loadTestData;
             }
         }
     }
@@ -410,8 +419,15 @@ function Deploy([Database] $database)
     # Choose the desired order for procedures and functions
     $steps += GetFunctionProcedureSteps $database;
 
-    # Finally, load the default data and run post scripts
+    # Load the default data
     $steps += @($DatabaseSteps.LOAD);
+
+    # Load the test data if it should be loaded
+    if($database.LoadTestData) {
+        $steps += @($DatabaseSteps.TEST);
+    }
+    
+    # Run any post-scripts
     $steps += @($DatabaseSteps.POSTSCRIPTS);
 
     # Always start with the setup
@@ -497,8 +513,8 @@ function ClearTables([Database] $database)
     $query = "EXEC sp_MSforeachtable @command1 = 'ALTER TABLE ? NOCHECK CONSTRAINT ALL;'";
     $database.RunQuery($query);
 
-    # Delete all data from all tables, and reseed the identities
-    $query = "EXEC sp_MSforeachtable @command1 = 'DELETE FROM ?; DBCC CHECKIDENT (''?'', RESEED, 0)'";
+    # Delete all data from all tables, and reseed the identities of tables that have identity columns
+    $query = "EXEC sp_MSforeachtable @command1 = 'DELETE FROM ?; IF (OBJECTPROPERTY(OBJECT_ID(''?''), ''TableHasIdentity'') = 1) DBCC CHECKIDENT (''?'', RESEED, 0)'";
     $database.RunQuery($query);
 
     # Re-enable all constraints
@@ -506,15 +522,21 @@ function ClearTables([Database] $database)
     $database.RunQuery($query);
 }
 
-# Clears all tables in the database, then reloads them with the default data
-function ClearAndReloadTables([Database] $database)
+# Clears all tables in the database, then reloads them with the default data and optionally also the test data
+function ClearAndReloadTables([Database] $database, [switch] $loadTestData)
 {
     ClearTables `
         -database $database;
     
+    $steps = @($DatabaseSteps.LOAD);
+    if($loadTestData)
+    {
+        $steps += @($DatabaseSteps.TEST);
+    }
+
     RunSteps `
         -database $database `
-        -steps @($DatabaseSteps.LOAD);
+        -steps $steps;
 }
 
 # Run the CLI when this script is executed
