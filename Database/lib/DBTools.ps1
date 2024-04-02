@@ -37,8 +37,6 @@ class Database
             -errorMessageHeader "Database script root does not exist" `
             -folder `
             -exit;
-
-        $this.TestConnection();
     }
 
     # Validates that the database can be connected to

@@ -119,6 +119,9 @@ function CommandLineInterface()
                 -optionNames ($project.Environments | ForEach-Object {$_.EnvironmentName}) `
                 -options $project.Environments `
                 -title "Select an environment by entering its index";
+
+        # Now that we know the database, try connecting to it to ensure we can continue
+        $null = $env.Database.TestConnection();
         
         $action = GetResponse `
                     -optionNames ([DatabaseAction].GetEnumNames()) `
