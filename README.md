@@ -34,9 +34,13 @@ Then, make sure your configured projects follow the correct structure. Inside ea
 │   ├── 1_SomeDatabaseSetup.sql
 │   ├── 2_SomeMoreDatabaseSetup.sql
 │   └── ...
-└── Test/
-    ├── 1_LoadSomeTestData.sql
-    ├── 2_LoadSomeMoreTestData.sql
+├── Test/
+│   ├── 1_LoadSomeTestData.sql
+│   ├── 2_LoadSomeMoreTestData.sql
+│   └── ...
+└── Validations/
+    ├── 1_SomeValidations.sql
+    ├── 2_SomeMoreValidations.sql
     └── ...
 
 **Important**: There must not be multiple dependencies between any folders. For example, consider the following scenario:
@@ -74,25 +78,28 @@ If you have a setup like this that would require interlacing, you might still be
 * `Procedures` (not required): Any SQL Server procedures you want in your database
 * `Setup` (required): The setup of the database, such as creating tables and adding constraints
 * `Test` (not required): Any test data you would like to load into the database for testing environments
+* `Validations` (not required): Any helper functions or procedures that are used by other procedures or functions
 
 ### Execution order
 The execution order of the scripts depends on what you set the configuration option `ProceduresBeforeFunctions` to. These are the possbile execution orders, but keep in mind that any non-required folders you do not have will simply be skipped.
 
 `ProceduresBeforeFunctions`: `true`
 1. Setup
-2. Procedures
-3. Functions
-4. Load
-5. Test
-6. PostScripts
+2. Validations
+3. Procedures
+4. Functions
+5. Load
+6. Test
+7. PostScripts
 
 `ProceduresBeforeFunctions`: `false`
 1. Setup
-2. Functions
-3. Procedures
-4. Load
-5. Test
-6. PostScripts
+2. Validations
+3. Functions
+4. Procedures
+5. Load
+6. Test
+7. PostScripts
 
 ### For advanced users
 AutoTasks will respect the folder structure and naming scheme of scripts, but it has no idea what they actually do. So it would still work perfectly fine to put a script that adds a function inside the `Procedures` folder, or put a script that loads data inside the `Functions` folder etc. With this in mind, it is possible to get around limitations in how AutoTasks works to still be able to use it, by structuring your files in a clever way between the available folders to make sure they are executed in the correct order. However, I would not recommend it as the point of having the folders in the first place is to structure your database well, so you have all functions in one place and all the procedures in another and so on.

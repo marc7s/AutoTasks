@@ -3,6 +3,7 @@
 
 [hashtable] $DatabaseSteps = @{
     SETUP = "Setup"
+    VALIDATIONS = "Validations"
     FUNCTIONS = "Functions"
     PROCEDURES = "Procedures"
     LOAD = "Load"
@@ -413,24 +414,26 @@ function Deploy([Database] $database)
     $null = $database.SetupDatabaseUser();
 
     # Now that the database is created, the rest of its structure can be deployed
-    # This array will keep the order of the deployment steps to run
-    $steps = @();
+    # This array will keep the order of the deployment steps to run, after the setup step which will always be run first
+    # The first step is to create the validations
+    $postSetupSteps = @($DatabaseSteps.VALIDATIONS);
     
     # Choose the desired order for procedures and functions
-    $steps += GetFunctionProcedureSteps $database;
+    $postSetupSteps += GetFunctionProcedureSteps $database;
 
     # Load the default data
-    $steps += @($DatabaseSteps.LOAD);
+    $postSetupSteps += @($DatabaseSteps.LOAD);
 
     # Load the test data if it should be loaded
     if($database.LoadTestData) {
-        $steps += @($DatabaseSteps.TEST);
+        $postSetupSteps += @($DatabaseSteps.TEST);
     }
     
     # Run any post-scripts
-    $steps += @($DatabaseSteps.POSTSCRIPTS);
+    $postSetupSteps += @($DatabaseSteps.POSTSCRIPTS);
 
     # Always start with the setup
+    Print "Running step: Setup";
     $null = RunOrderedScripts `
                 -database $database `
                 -relativeFolderPath $DatabaseSteps.SETUP `
@@ -439,7 +442,7 @@ function Deploy([Database] $database)
     # Now that the rest of the deployment steps are ordered correctly, go through each one in order and run all the scripts
     RunSteps `
         -database $database `
-        -steps $steps;
+        -steps $postSetupSteps;
 
     return $null;
 }
