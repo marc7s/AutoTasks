@@ -17,8 +17,9 @@ class Database
     [string] $CreateLogin
     [string] $CreateUserName
     [SecureString] $CreateLoginPassword
+    [boolean] $CreateUserAdmin
     
-    Database([string] $serverName, [string] $login, [SecureString] $password, [string] $databaseName, [string] $databaseScriptsRoot, [string] $environment, [boolean] $loadTestData, [boolean] $proceduresBeforeFunctions, [string] $createLogin = $null, [SecureString] $createLoginPassword = $null, [string] $createUserName = $null)
+    Database([string] $serverName, [string] $login, [SecureString] $password, [string] $databaseName, [string] $databaseScriptsRoot, [string] $environment, [boolean] $loadTestData, [boolean] $proceduresBeforeFunctions, [string] $createLogin = $null, [SecureString] $createLoginPassword = $null, [string] $createUserName = $null, [boolean] $createUserAdmin = $false)
     {
         $this.ServerName = $serverName;
         $this.DatabaseName = $databaseName;
@@ -33,8 +34,9 @@ class Database
         $this.CreateLogin = $createLogin;
         $this.CreateLoginPassword = $createLoginPassword;
         $this.CreateUserName = $createUserName;
+        $this.CreateUserAdmin = $createUserAdmin;
 
-        ValidatePath `
+        $null = ValidatePath `
             -path $this.ScriptsRoot `
             -errorMessageHeader "Database script root does not exist" `
             -folder `
@@ -44,7 +46,7 @@ class Database
     # Validates that the database can be connected to
     [void] TestConnection()
     {
-        ExecuteDatabaseQuery `
+        $null = ExecuteDatabaseQuery `
             -Database $this `
             -Query "SELECT @@Version" `
             -ExecuteOnMaster `
@@ -55,7 +57,7 @@ class Database
     # Runs a query on the database
     [void] RunQuery([string] $query)
     {
-        ExecuteDatabaseQuery `
+        $null = ExecuteDatabaseQuery `
             -Database $this `
             -Query $query `
             -Exit;
@@ -64,7 +66,7 @@ class Database
     # Runs a script on the database
     [void] RunScript([string] $relativeScriptLocation)
     {
-        ExecuteDatabaseQuery `
+        $null = ExecuteDatabaseQuery `
             -Database $this `
             -RelativeSQLFilePath $relativeScriptLocation `
             -Exit;
@@ -123,6 +125,17 @@ class Database
         {
             return;
         }
+
+        $permissions = "";
+
+        if($this.CreateUserAdmin)
+        {
+            $permissions = "CONTROL";
+        }
+        else
+        {
+            $permissions = "CONNECT, SELECT, EXEC";
+        }
         
         $query = "IF NOT EXISTS(SELECT principal_id FROM sys.server_principals WHERE name = '$($this.CreateLogin)')
         BEGIN
@@ -136,10 +149,10 @@ class Database
             CREATE USER $($this.CreateUserName) FOR LOGIN $($this.CreateLogin);
         END
         
-        GRANT CONNECT, SELECT, EXEC TO $($this.CreateUserName);
+        GRANT $($permissions) TO $($this.CreateUserName);
         GO";
 
-        ExecuteDatabaseQuery `
+        $null = ExecuteDatabaseQuery `
             -Database $this `
             -Query $query `
             -ExecuteOnMaster `
@@ -205,7 +218,7 @@ function ExecuteDatabaseQuery
             $scriptPath += ".sql";
         }
         
-        ValidatePath `
+        $null = ValidatePath `
             -path $scriptPath `
             -errorMessageHeader "Database script does not exist" `
             -exit;

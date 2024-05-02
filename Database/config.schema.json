@@ -59,6 +59,10 @@
                         "CreateDatabaseUserName": {
                             "description": "An optional database user to create for the login of this environment",
                             "type": "string"
+                        },
+                        "CreateDatabaseUserAdmin": {
+                            "description": "If the optional database user should be an administrator",
+                            "type": "boolean"
                         }
                     },
                     "required": ["EnvironmentName", "LoadTestData", "ServerName", "DatabaseName", "Login", "Password"],

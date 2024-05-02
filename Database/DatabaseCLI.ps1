@@ -62,7 +62,8 @@ function ParseConfig()
                 ($null -ne $project.ProceduresBeforeFunctions) ? $project.ProceduresBeforeFunctions : $false,
                 $env.CreateDatabaseLogin,
                 ($null -ne $env.CreateDatabaseLoginPassword) ? (ConvertTo-SecureString $env.CreateDatabaseLoginPassword -AsPlainText -Force) : $null,
-                $env.CreateDatabaseUserName
+                $env.CreateDatabaseUserName,
+                ($null -ne $env.CreateDatabaseUserAdmin) ? $env.CreateDatabaseUserAdmin : $false
             );
 
             # Add the database object as a property to the environment object
@@ -352,7 +353,7 @@ function ReorderScript([string] $scriptsFolderPath, [string[]] $scriptNames, [in
 
     # Rename the script from the temporary naming to the target index
     GetOrderedSQLScriptsInFolder -folderPath $scriptsFolderPath -getFileObjects
-        | Where-Object { $_.Name -match "^TEMP_" }AddNewScript
+        | Where-Object { $_.Name -match "^TEMP_" }
         | Rename-Item -NewName { $_.Name -replace "TEMP_", "$($targetIndex)_" };
 }
 
