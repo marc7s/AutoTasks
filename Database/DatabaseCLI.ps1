@@ -16,6 +16,7 @@ enum DatabaseAction
 {
     TryConnecting
     DeployAll
+    SetupDatabaseUsers
     DeployProceduresAndFunctions
     ClearAllTables
     ClearAllTablesAndReLoadData
@@ -193,6 +194,11 @@ function RunAction()
 
             ([DatabaseAction]::DeployAll) {
                 Deploy `
+                    -database $database;
+            }
+
+            ([DatabaseAction]::SetupDatabaseUsers) {
+                SetupDatabaseUsers `
                     -database $database;
             }
 
@@ -412,7 +418,7 @@ function Deploy([Database] $database)
     $null = $database.CreateDatabase();
 
     # Then create the user/s and login/s for the database
-    $null = $database.SetupDatabaseUser();
+    SetupDatabaseUsers -database $database;
 
     # Now that the database is created, the rest of its structure can be deployed
     # This array will keep the order of the deployment steps to run, after the setup step which will always be run first
@@ -446,6 +452,12 @@ function Deploy([Database] $database)
         -steps $postSetupSteps;
 
     return $null;
+}
+
+function SetupDatabaseUsers([Database] $database)
+{
+    Print "Setting up database users for $($database.ServerName).$($database.DatabaseName), in $($database.Environment)";
+    $null = $database.SetupDatabaseUser();
 }
 
 function DeployProceduresAndFunctions([Database] $database)
